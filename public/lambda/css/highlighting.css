@@ -1,0 +1,86 @@
+html {
+	--code-color: #fdf9f3;
+	--code-background-color: #2c292d;
+}
+
+
+.highlighted-input {
+	position: relative;
+	font-family: "Cousine", monospace;
+	font-size: 16px;
+	line-height: 1.2em;
+
+	background-color: var(--code-background-color);
+
+	padding: 8px;
+	height: 1.1em;
+
+	width: 200px;
+}
+
+.highlighted-input input {
+	position: absolute;
+	left: 0;
+	top: 0;
+
+	padding: inherit;
+	border: none;
+	outline: none;
+	width: 100%;
+	box-sizing: border-box;
+
+	font: inherit;
+	background-color: transparent;
+	color: transparent;
+	caret-color: var(--code-color);
+}
+
+.highlighted-input input::selection {
+	background-color: #000020;
+}
+
+.highlighted-value {
+	position: absolute;
+
+	color: var(--code-color);
+	pointer-events: none;
+	white-space: pre;
+}
+
+
+.token-lambda {
+	color: #78dce8;
+}
+.token-argument {
+	color: #fc9867;
+}
+.token-point {
+	margin-left: -2px;
+	padding-right: 2px;
+}
+.token-operator {
+	color: #ff6188;
+}
+.token-name {
+	color: #ffd866;
+}
+.token-literal {
+	color: #ab9df2;
+}
+
+.beta-subscript {
+	position: relative;
+	top: 3px;
+	font-size: 0.6em;
+	margin-left: 2px;
+}
+.pre-beta-superscript {
+	position: absolute;
+	margin-top: -5px;
+}
+.token-colon {
+	position: relative;
+	top: -1px;
+	margin-left: -2px;
+	margin-right: -2px;
+}
