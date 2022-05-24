@@ -91,3 +91,17 @@ h3 {
 h3::before {
 	content: counter(section) ". ";
 }
+
+
+nav {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	margin: 16px 0;
+}
+
+nav a {
+	color: #3a76e4;
+	text-decoration: none;
+	font-size: 18px;
+}
