@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Списки &mdash; &lambda;-calculus</title>
+
+		<link rel="stylesheet" type="text/css" href="css/main.css">
+		<link rel="stylesheet" type="text/css" href="css/highlighting.css">
+	</head>
+	<body>
+		<h1><b>&lambda;</b>-calculus</h1>
+        <h2>V. Списки</h2>
+
+
+		<nav>
+			<a href="pt4.html">&leftarrow; IV. Продвинутая арифметика</a>
+			<a></a>
+		</nav>
+
+
+		<h3>Основы списков</h3>
+
+		<p>
+			Давайте теперь реализуем какую-нибудь сложную структуру данных, например, список. Список, конечно, односвязный. Пусть мы хотим, чтобы <code>list</code> хранил в себе список из чисел 1, 2, 3. Тогда эту переменную мы определим таким образом, что выражение <code>list f 0</code> будет равно <code>f 1 (f 2 (f 3 0))</code>. Говоря в терминах императивных языков программирования, <code>list</code> принимает два аргумента: функцию объединения и какой-то параметр, который мы назовем аккумулятором, а затем проходит по списку справа налево и объединяет очередной элемент с аккумулятором. Иначе говоря, производит правую свертку. Чем-то похож на цикл <code>for</code> с конца.
+		</p>
+
+		<p>
+			Список из трех элементов 1, 2, 3, например, реализуется так:
+		</p>
+
+		<pre>list123 := \f. \acc. f 1 (f 2 (f 3 acc))</pre>
+
+		<p>
+			Пустой список выглядит так (он, кстати, совпадает с <code>false</code> и <code>zero</code>, удивительное дело):
+		</p>
+
+		<pre>nil := \f. \acc. acc</pre>
+
+		<p>
+			Список из одного элемента конструируется так:
+		</p>
+
+		<pre>singleton := \x. \f. \acc. f x acc</pre>
+
+		<p>
+			Добавление элемента <code>h</code> в начало списка <code>t</code> (сокращения от слов head и tail). Никого же не смущает функция, принимающая четыре аргумента, да?
+		</p>
+
+		<pre>cons := \h. \t. \f. \acc. f h (t f acc)</pre>
+
+		<p>
+			Конкатенация (склеивание) списков:
+		</p>
+
+		<pre>concat := \alist. \blist. \f. \acc. alist f (blist f acc)</pre>
+
+		<p>
+			Забавно, но конкатенация списков также умеет складывать числа.
+		</p>
+
+		<p>
+			Проверка списка на пустоту похожа на проверку числа на нуль:
+		</p>
+
+		<pre>isnul := \list. list (\x. \acc. false) true</pre>
+
+		<p>
+			Подсчет длины списка:
+		</p>
+
+		<pre>length := \list. list (\x. \acc. succ acc) 0</pre>
+
+		<p>
+			Или, если применить &eta;-преобразование:
+		</p>
+
+		<pre>length := \list. list (\x. succ) 0</pre>
+
+		<p>
+			Получение первого элемента списка (<code>false</code>, если список пустой):
+		</p>
+
+		<pre>head := \list. list (\x. \acc. x) false</pre>
+
+		<p>
+			Кстати, заметили опять знакомые выражения? <code>head =b pair true false</code>, даже удивительно.
+		</p>
+
+		<p>
+			Получение первого элемента списка со значением по умолчанию в случае пустого списка:
+		</p>
+
+		<pre>headdef := \def. \list. list (\x. \acc. x) def</pre>
+
+		<p>
+			А еще <code>headdef =b pair true</code>, если вы хотите кого-нибудь запутать.
+		</p>
+
+
+		<h3>Расслоение списков</h3>
+
+		<p>
+			Научимся теперь расслаивать список на пару <code>(head, tail)</code>, то есть пару из первого элемента списка и списка без первого элемента (хвоста списка). Пожалуй, самое сложное из того, что нам приходилось создавать на текущий момент.
+		</p>
+
+		<p>
+			Первое, что приходит в голову &mdash; попробовать написать что-то наподобие:
+		</p>
+
+		<pre>split := \list. list (\x. \acc. pair x acc) (...)</pre>
+
+		<p>
+			То есть втупую на каждом шаге создавать пару из головы и хвоста.
+		</p>
+
+		<p>
+			Но всплывает две проблемы. Первая &mdash; <code>acc</code> не является списком. Это результат функции <code>split</code> от хвоста списка. То есть пара.
+		</p>
+
+		<p>
+			Чтобы превратить <code>split</code> от списка обратно в список, мы можем использовать <code>cons</code>:
+		</p>
+
+		<pre>unsplit := \splitres. cons (first splitres) (second splitres)</pre>
+
+		<p>
+			Так как пара вызывает переданную ей функцию от своих первого и второго элемента, это можно упростить до:
+		</p>
+
+		<pre>unsplit := \splitres. splitres cons</pre>
+
+		<p>
+			Наконец, новая версия <code>split</code>:
+		</p>
+
+		<pre>split := \list. list (\x. \acc. pair x (unsplit acc)) (...)</pre>
+
+		<p>
+			У нас осталась другая проблема. Не очень понятно, что должно быть на месте <code>...</code>, чтобы все работало.
+		</p>
+
+		<p>
+			Но вот что должен выдать <code>split</code> от списка из одного элемента мы точно знаем, так что давайте попробуем вычислить <code>split (singleton E)</code>:
+		</p>
+
+		<pre>
+singleton E -> \f. \acc. f E acc
+
+split (singleton E) ->
+-> (singleton E) (\x. \acc. pair x (unsplit acc)) (...) ->
+-> (\x. \acc. pair x (unsplit acc)) E (...) ->
+-> pair E (unsplit (...))
+</pre>
+
+		<p>
+			А должно быть <code>pair E nil</code>, то есть <code>unsplit (...) -> (...) cons -> nil</code>. Так что пусть <code>...</code> принимает один аргумент и всегда возвращает <code>nil</code>.
+		</p>
+
+		<pre>split := \list. list (\x. \acc. pair x (unsplit acc)) (\x. nil)</pre>
+
+		<p>
+			Значит, теперь у нас <code>split (singleton E) -> pair E nil</code>, что нам и нужно, а дальше функция редукции <code>\x. \acc. pair x (unsplit acc)</code> будет работать как ожидалось.
+		</p>
+
+		<p>
+			Можно провести аналогию с таким циклом:
+		</p>
+
+		<pre>
+acc = \x. nil
+for x in reversed list:
+    tail = acc cons
+    acc = pair x tail
+return acc
+</pre>
+
+		<p>
+			Ну и, конечно, теперь можно реализовать функцию <code>tail</code>, которая возвращает список без своего первого элемента:
+		</p>
+
+		<pre>tail := \list. second (split list)</pre>
+
+		<p>
+			Интересно, кстати, что все же произойдет, если <code>split</code> запустить от пустого списка? Для пустого списка <code>split nil -> \x. nil</code> по определению, но что будет, если это выражение интерпретировать как пару?
+		</p>
+
+		<pre>
+first (\x. nil) -> (\x. nil) (\a. \b. a) -> nil
+second (\x. nil) -> (\x. nil) (\a. \b. b) -> nil
+</pre>
+
+		<p>
+			Ожидаемо, <code>tail nil -> nil</code>. Не очень ожидаемо, что <code>first (split nil) -> nil</code>. Но тут стоит благодарить случай за то, что <code>nil</code> и <code>false</code> кодируются одинаково, и <code>first (split nil) =b nil =b false =b head nil</code>, так что какая-то консистентность сохранилась.
+		</p>
+
+
+		<nav>
+			<a href="pt4.html">&leftarrow; IV. Продвинутая арифметика</a>
+			<a></a>
+		</nav>
+
+
+		<script type="text/javascript" src="js/highlighting.js"></script>
+	</body>
+</html>
